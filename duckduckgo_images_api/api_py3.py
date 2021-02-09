@@ -7,6 +7,8 @@ import json
 import time
 import logging
 import sys
+import pandas as pd
+import os
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -64,6 +66,8 @@ def search(keywords, max_results=None):
 
     logger.debug("Hitting Url : %s", requestUrl)
 
+    df_results = pd.DataFrame()
+
     while True:
         while True:
             try:
@@ -81,11 +85,14 @@ def search(keywords, max_results=None):
                 continue
 
         logger.debug("Hitting Url Success : %s", requestUrl)
-        printJson(data["results"])
+        # printJson(data["results"])
+        df_temp = pd.DataFrame(data["results"])
+        df_results = pd.concat([df_results, df_temp], ignore_index=True)
 
         if "next" not in data:
             logger.debug("No Next Page - Exiting")
-            sys.exit(0)
+            df_results.to_csv(os.path.join('data', f"{keywords.replace(' ', '_')}.csv"), index=False)
+            return
 
         requestUrl = url + data["next"]
 
@@ -98,4 +105,4 @@ def printJson(objs):
         print("Image {0}".format(obj["image"]))
         print("__________")
 
-search("audi q6");
+# search("audi q6")
